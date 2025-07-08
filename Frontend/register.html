@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Register</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-blue-100 via-purple-100 to-pink-100 min-h-screen flex items-center justify-center">
+
+  <div class="w-full max-w-sm p-6 bg-white rounded-2xl shadow-xl">
+    
+    <!-- Logo + Title -->
+    <div class="text-center mb-6">
+      <img src="nexora.jpeg" alt="Logo" class="w-20 h-20 object-cover mx-auto mb-2 rounded-full shadow-md" />
+
+      <h1 class="text-xl font-semibold text-gray-700">Welcome to</h1>
+      <h2 class="text-2xl font-bold text-blue-600">Nexoraverse</h2>
+    </div>
+
+    <!-- Form -->
+    <div class="space-y-4">
+      <input
+        type="text"
+        id="name"
+        placeholder="Name"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+      />
+      <input
+        type="email"
+        id="email"
+        placeholder="Email"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+      />
+      <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+      />
+      <select
+        id="role"
+        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400"
+      >
+        <option value="user">User</option>
+        <option value="admin">Admin</option>
+      </select>
+
+      <button
+        onclick="register()"
+        class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-300"
+      >
+        Register
+      </button>
+    </div>
+  </div>
+
+  <script>
+    async function register() {
+      try {
+        const res = await fetch("http://127.0.0.1:7121/api/UserController/createUser", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: document.getElementById("name").value,
+            email: document.getElementById("email").value,
+            password: document.getElementById("password").value,
+            role: document.getElementById("role").value
+          })
+        });
+
+        if (!res.ok) {
+          const errorText = await res.text();
+          alert("Registration failed: " + errorText);
+          return;
+        }
+
+        alert("Registered successfully!");
+        window.location.href = "login.html";
+
+      } catch (error) {
+        alert("An error occurred: " + error.message);
+      }
+    }
+  </script>
+
+</body>
+</html>

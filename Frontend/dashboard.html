@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>User Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-r from-indigo-100 via-purple-100 to-pink-100 min-h-screen flex items-center justify-center p-4">
+<button
+  onclick="logout()"
+  class="absolute top-4 right-10 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition shadow-md"
+>
+  Logout
+</button>
+  <div class="w-full max-w-2xl p-6 bg-white rounded-xl shadow-lg space-y-6">
+    <div class="text-center">
+      <h2 class="text-3xl font-bold text-blue-600 mb-1">Welcome to Nexoraverse</h2>
+      <p class="text-gray-600 text-sm">Role-Based Access Dashboard (JWT Auth)</p>
+    </div>
+
+
+    <!-- Buttons -->
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <button onclick="loadUserDashboard()" class="flex-1 bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition">
+        Load User Dashboard
+      </button>
+      <button onclick="loadAdminDashboard()" class="flex-1 bg-purple-500 text-white py-2 px-4 rounded-lg hover:bg-purple-600 transition">
+        Load Admin Dashboard
+      </button>
+    </div>
+
+    <!-- Output -->
+    <div class="bg-gray-100 p-4 rounded-md overflow-auto max-h-96">
+      <pre id="output" class="text-sm text-gray-700 whitespace-pre-wrap"></pre>
+    </div>
+  </div>
+<pre id="output" class="text-sm whitespace-pre-wrap max-h-96 overflow-auto"></pre>
+
+<script>
+  function showMessage(message, isSuccess = true) {
+    const output = document.getElementById("output");
+    output.innerHTML = `
+      <div class="${isSuccess ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'} px-4 py-3 rounded-lg shadow-md">
+        ${message}
+      </div>
+    `;
+  }
+
+  async function loadUserDashboard() {
+    try {
+      const res = await fetch("http://127.0.0.1:7121/api/UserController/dashboard", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      const text = await res.text();
+
+      if (res.status === 200) {
+        showMessage("✅ User Dashboard Loaded:\n\n" + text, true);
+      } else {
+        showMessage("🚫 Access Denied: " + text, false);
+      }
+
+    } catch (error) {
+      showMessage("❌ Error: " + error.message, false);
+    }
+  }
+
+  async function loadAdminDashboard() {
+    try {
+      const res = await fetch("http://127.0.0.1:7121/api/UserController/admin-only", {
+        method: "GET",
+        credentials: "include"
+      });
+
+      const text = await res.text();
+
+      if (res.status === 200) {
+        showMessage("✅ Admin Dashboard Loaded:\n\n" + text, true);
+      } else {
+        showMessage("🚫 Access Denied: " + text, false);
+      }
+
+    } catch (error) {
+      showMessage("❌ Error: " + error.message, false);
+    }
+  }
+
+  async function logout() {
+    try {
+      const res = await fetch("http://127.0.0.1:7121/api/UserController/Logout", {
+        method: "POST",
+        credentials: "include"
+      });
+
+      if (res.ok) {
+        alert("✅ Logged out successfully!");
+        window.location.href = "login.html"; // redirect to login
+      } else {
+        const msg = await res.text();
+        alert("Logout failed: " + msg);
+      }
+    } catch (error) {
+      alert("❌ Error logging out: " + error.message);
+    }
+  }
+</script>
+
+  </body>
+</html>
