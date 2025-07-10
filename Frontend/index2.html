@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --background: #0f172a;
+      --foreground: #1e293b;
+      --accent: #3b82f6;
+      --glass: rgba(255, 255, 255, 0.05);
+      --text: #f1f5f9;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body, html {
+      height: 100%;
+      background: var(--background);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    #particles-js {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      background: var(--background);
+    }
+
+    .container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--glass);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+      padding: 40px 30px;
+      width: 350px;
+      z-index: 1;
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      font-weight: 600;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 12px;
+      background: #1e293b;
+      border: none;
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-size: 14px;
+      outline: none;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: white;
+      font-weight: 600;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #2563eb;
+    }
+
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .mode-toggle {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: transparent;
+      border: 1px solid #334155;
+      color: #94a3b8;
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 2;
+      transition: 0.3s;
+    }
+
+    .mode-toggle:hover {
+      background: #1e293b;
+      color: #fff;
+    }
+
+    .spinner {
+      width: 20px;
+      height: 20px;
+      border: 3px solid #fff;
+      border-top: 3px solid transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 400px) {
+      .container {
+        width: 90%;
+        padding: 30px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div id="particles-js"></div>
+
+  <button class="mode-toggle" onclick="toggleMode()">Dark</button>
+
+  <div class="container">
+    <h2>Login</h2>
+    <form id="login-form">
+      <div class="input-group">
+        <input type="text" placeholder="Username" required>
+      </div>
+      <div class="input-group">
+        <input type="password" placeholder="Password" required>
+      </div>
+      <button type="submit" id="login-btn">Login</button>
+    </form>
+    <div class="footer">
+      Don't have an account? <a href="#">Sign up</a>
+    </div>
+  </div>
+
+  <!-- Particle JS -->
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+
+  <script>
+    // Particle config
+    particlesJS("particles-js", {
+      particles: {
+        number: { value: 50 },
+        color: { value: "#ffffff" },
+        shape: { type: "circle" },
+        opacity: { value: 0.08 },
+        size: { value: 3 },
+        move: { enable: true, speed: 1.5 },
+        line_linked: {
+          enable: true,
+          distance: 120,
+          color: "#ffffff",
+          opacity: 0.08,
+          width: 1
+        }
+      },
+      interactivity: {
+        events: {
+          onhover: { enable: true, mode: "repulse" },
+          onclick: { enable: false }
+        },
+        modes: { repulse: { distance: 100 } }
+      }
+    });
+
+    // Mode toggle
+    let isDark = true;
+    function toggleMode() {
+      isDark = !isDark;
+      document.documentElement.style.setProperty('--background', isDark ? '#0f172a' : '#f8fafc');
+      document.documentElement.style.setProperty('--foreground', isDark ? '#1e293b' : '#ffffff');
+      document.documentElement.style.setProperty('--glass', isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)');
+      document.documentElement.style.setProperty('--text', isDark ? '#f1f5f9' : '#111827');
+      document.documentElement.style.setProperty('--accent', isDark ? '#3b82f6' : '#2563eb');
+      document.body.style.background = isDark ? '#0f172a' : '#f8fafc';
+      document.querySelector('.mode-toggle').textContent = isDark ? 'Dark' : 'Light';
+    }
+
+    // Submit button with loading
+    const form = document.getElementById('login-form');
+    const btn = document.getElementById('login-btn');
+
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      btn.innerHTML = '<div class="spinner"></div>';
+      btn.disabled = true;
+
+      setTimeout(() => {
+        btn.innerHTML = 'Login';
+        btn.disabled = false;
+        alert('Login successful (demo)');
+      }, 2000);
+    });
+  </script>
+</body>
+</html>
