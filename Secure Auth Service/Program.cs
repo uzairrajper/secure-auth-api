@@ -1,5 +1,4 @@
-﻿using dotenv.net;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Secure_Auth_Service;
@@ -62,7 +61,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     options.UseMySQL(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
-DotEnv.Load();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

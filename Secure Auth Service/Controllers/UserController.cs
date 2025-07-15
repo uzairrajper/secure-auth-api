@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using Secure_Auth_Service.DTO;
 using Secure_Auth_Service.Model;
+using Secure_Auth_Service.services;
 using System.IdentityModel.Tokens.Jwt;
 using System.Net;
 using System.Security.Claims;
@@ -17,9 +18,11 @@ namespace Secure_Auth_Service.Controllers
     {
         private readonly IConfiguration _config;
         ApplicationDbContext context;
-       public UserController(ApplicationDbContext _context, IConfiguration config) {
+        JwtService _jwtService; 
+        public UserController(ApplicationDbContext _context, IConfiguration config) {
             context = _context;
             _config = config;
+            _jwtService = new JwtService(config);
         }
 
         [HttpPost("createUser")]
@@ -64,24 +67,22 @@ namespace Secure_Auth_Service.Controllers
             if(user == null|| !BCrypt.Net.BCrypt.Verify(loginDto.Password,user.password_hash)) {
             return Unauthorized("Invalid credentials.");
             }
-            var claims = new[]
-            {
-               
-                new Claim(ClaimTypes.Name, user.name),
-                new Claim(ClaimTypes.Email, user.email),
-                new Claim(ClaimTypes.Role, user.role)
-            };
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_config["Jwt:Key"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-            var token = new JwtSecurityToken(
-            issuer: _config["Jwt:Issuer"],
-            audience: _config["Jwt:Audience"],
-            claims: claims,
-            expires: DateTime.Now.AddMinutes(60),
-            signingCredentials: creds
-        );
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
+            var tokenString = _jwtService.CreateJwtTokens(user);
+
+            var refreshToken = Guid.NewGuid().ToString(); // or use RandomNumberGenerator
+            var refreshTokenExpire = DateTime.UtcNow.AddDays(7);
+
+            var refreshTokenEntry = new refresh_tokens
+            {
+                token = refreshToken,
+                user_id = user.id,
+                expires_at = refreshTokenExpire,
+                is_revoked = 0,
+                created_at = DateTime.UtcNow
+            };
+            context.Refresh_Tokens.Add(refreshTokenEntry);
+            context.SaveChanges();
             Response.Cookies.Append("access_token", tokenString, new CookieOptions
             {
                HttpOnly = true,
@@ -89,8 +90,69 @@ namespace Secure_Auth_Service.Controllers
                SameSite = SameSiteMode.Lax,
                Expires = DateTime.Now.AddMinutes(60)
             });
+            Response.Cookies.Append("refresh_token", refreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false, // its false because we are testin in local host, in production you will set it to true
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTime.Now.AddMinutes(60)
+            });
 
             return Ok("Login successful");
+        }
+
+
+        [HttpPost("refresh")]
+        public IActionResult RefreshToken()
+        {
+            //first we have to check if 
+            var refreshToken = Request.Cookies["refresh_token"];
+
+            if (string.IsNullOrEmpty(refreshToken))
+                return Unauthorized("No refresh token provided.");
+
+            var storedToken = context.Refresh_Tokens.FirstOrDefault(s=> s.token == refreshToken);
+            if (storedToken == null || storedToken.expires_at < DateTime.UtcNow || storedToken.is_revoked == 1)
+                return Unauthorized("Invalid or expired refresh token.");
+
+            var user = context.Users.FirstOrDefault(s => s.id == storedToken.user_id);
+            if (user == null)
+                return Unauthorized("User not found.");
+
+            //Rotate refresh token
+            storedToken.is_revoked = 1;
+            var newRefreshToken = Guid.NewGuid().ToString();
+            var newExpires = DateTime.UtcNow.AddDays(7);
+            context.Refresh_Tokens.Add(new refresh_tokens
+            {
+                token = newRefreshToken,
+                user_id = user.id,
+                created_at = DateTime.UtcNow,
+                expires_at = newExpires,
+                is_revoked = 0
+            });
+            context.SaveChanges();
+
+            // created new token 
+            var accessTokenString = _jwtService.CreateJwtTokens(user);
+
+            Response.Cookies.Append("access_token", accessTokenString, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false, // its false because we are testin in local host, in production you will set it to true
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTime.Now.AddMinutes(60)
+            });
+            Response.Cookies.Append("refresh_token", newRefreshToken, new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = false, // its false because we are testin in local host, in production you will set it to true
+                SameSite = SameSiteMode.Lax,
+                Expires = DateTime.Now.AddMinutes(60)
+            });
+
+
+            return Ok();
         }
 
         [Authorize(Roles = "admin")]
@@ -111,6 +173,7 @@ namespace Secure_Auth_Service.Controllers
         public IActionResult Logout()
         {
             Response.Cookies.Delete("access_token");
+            Response.Cookies.Delete("refresh_token");
             return Ok("Logged out");
         }
     }

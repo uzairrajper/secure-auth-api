@@ -48,50 +48,46 @@
   }
 
   async function loadUserDashboard() {
-    try {
-      const res = await fetch("http://127.0.0.1:7121/api/UserController/dashboard", {
-        method: "GET",
-        credentials: "include"
-      });
+  try {
+    const res = await fetchWithRefresh("http://127.0.0.1:7121/api/UserController/dashboard", {
+      method: "GET"
+    });
 
-      const text = await res.text();
+    const text = await res.text();
 
-      if (res.status === 200) {
-        showMessage("✅ User Dashboard Loaded:\n\n" + text, true);
-      } else {
-        showMessage("🚫 Access Denied: " + text, false);
-      }
-
-    } catch (error) {
-      showMessage("❌ Error: " + error.message, false);
+    if (res.status === 200) {
+      showMessage("✅ User Dashboard Loaded:\n\n" + text, true);
+    } else {
+      showMessage("🚫 Access Denied: " + text, false);
     }
+  } catch (error) {
+    showMessage("❌ Error: " + error.message, false);
   }
+}
+
 
   async function loadAdminDashboard() {
-    try {
-      const res = await fetch("http://127.0.0.1:7121/api/UserController/admin-only", {
-        method: "GET",
-        credentials: "include"
-      });
+  try {
+    const res = await fetchWithRefresh("http://127.0.0.1:7121/api/UserController/admin-only", {
+      method: "GET"
+    });
 
-      const text = await res.text();
+    const text = await res.text();
 
-      if (res.status === 200) {
-        showMessage("✅ Admin Dashboard Loaded:\n\n" + text, true);
-      } else {
-        showMessage("🚫 Access Denied: " + text, false);
-      }
-
-    } catch (error) {
-      showMessage("❌ Error: " + error.message, false);
+    if (res.status === 200) {
+      showMessage("✅ Admin Dashboard Loaded:\n\n" + text, true);
+    } else {
+      showMessage("🚫 Access Denied: " + text, false);
     }
+  } catch (error) {
+    showMessage("❌ Error: " + error.message, false);
   }
-
+}
   async function logout() {
     try {
-      const res = await fetch("http://127.0.0.1:7121/api/UserController/Logout", {
-        method: "POST",
-        credentials: "include"
+      const res = fetchWithRefresh("http://127.0.0.1:7121/api/UserController/Logout", {
+        method: "POST"
+      
       });
 
       if (res.ok) {
@@ -104,6 +100,34 @@
     } catch (error) {
       alert("❌ Error logging out: " + error.message);
     }
+  }
+
+
+  async function fetchWithRefresh(url, options = {}, retry = true) {
+    const res = await fetch(url, {
+      ...options,
+      credentials: "include"
+    });
+
+    if (res.status === 401 && retry) {
+      // Token expired → attempt refresh
+      const refreshResponse = await fetch("http://127.0.0.1:7121/api/UserController/refresh", {
+        method: "POST",
+        credentials: "include"
+      });
+
+      if (refreshResponse.ok) {
+        // Retry original request once
+        return await fetchWithRefresh(url, options, false);
+      } else {
+        // Refresh failed → force logout or redirect
+        alert("🔒 Session expired. Please log in again.");
+        window.location.href = "login.html";
+        return res;
+      }
+    }
+
+    return res;
   }
 </script>
 

@@ -10,5 +10,7 @@ namespace Secure_Auth_Service
         
         }
       public   DbSet<users> Users { get; set; }
+      public DbSet<refresh_tokens> Refresh_Tokens { get; set; }
+
     }
 }
