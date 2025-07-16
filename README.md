@@ -16,9 +16,7 @@
 - 🔑 JWT Authentication & Refresh Tokens
 - 🔐 Role-Based Access Control (RBAC)
 - 🧠 Secure Password Hashing (bcrypt/scrypt)
-- ⚙️ Configurable with `.env` & `IConfiguration`
-- 🧪 Unit & Integration Testing
-- 📦 Modular Folder Structure
+- ⚙️ Configurable `IConfiguration`
 - 📡 RESTful API Design
 
 ---
@@ -27,7 +25,8 @@
 
 <!-- Replace with actual video/gif/screenshot links -->
 <p align="center">
-  <img src="https://yourdomain.com/screenshot.png" width="700" alt="App Demo"/>
+  <img src="Screenshot 2025-07-16 115530.jpg" width="700" alt="App Demo"/>
+  <img src="Screenshot 2025-07-16 115551.jpg" width="700" alt="App Demo"/>
 </p>
 
 ---
