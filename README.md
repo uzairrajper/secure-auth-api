@@ -35,8 +35,51 @@
 
 | Backend | Database | Auth | Tools |
 |--------|----------|------|-------|
-| .NET 8 / Node.js | MariaDB / PostgreSQL | JWT | Postman, Swagger |
-| ASP.NET Core API | SQLite (dev) | Refresh Tokens | Git, Docker |
+| .NET 8 | MariaDB  | JWT | Postman, Swagger |
+| ASP.NET Core API | SQLite (dev) | Refresh Tokens | Git |
+
+---
+## ⚙️ API Endpoints
+
+### 🔐 AuthController
+| Method | Endpoint                | Description                    |
+|--------|-------------------------|--------------------------------|
+| POST   | `/api/Auth/login`       | Authenticates user, returns tokens |
+| POST   | `/api/Auth/refresh`     | Issues new access/refresh tokens |
+| POST   | `/api/Auth/logout`      | Logs user out, revokes token |
+
+### 👤 UserController
+| Method | Endpoint                    | Auth Role | Description                |
+|--------|-----------------------------|-----------|----------------------------|
+| GET    | `/api/UserController/dashboard` | User/Admin | Returns user dashboard |
+| GET    | `/api/UserController/admin-only` | Admin      | Admin-only data         |
+
+---
+
+## 🧠 Token Storage Strategy
+
+| Token Type      | Storage Location | Expiry     | Notes                                 |
+|------------------|------------------|------------|---------------------------------------|
+| Access Token     | HttpOnly Cookie  | 60 minutes | Used for most API requests            |
+| Refresh Token    | HttpOnly Cookie + DB | 7 days     | Used to renew access token on expiry  |
+
+---
+
+## 🛡️ Backend Security Flow
+
+1. On **login**, issue:
+   - JWT access token (60 min)
+   - Refresh token (stored in DB + sent in cookie)
+
+2. On **API call**:
+   - If access token valid → ✅ OK
+   - If expired → frontend calls `/refresh`
+   - If refresh token valid → ✅ new tokens issued
+   - If invalid/revoked → ❌ force logout
+
+3. On **logout**:
+   - Refresh token revoked
+   - Cookies cleared
 
 ---
 
